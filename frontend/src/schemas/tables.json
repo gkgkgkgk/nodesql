@@ -1,0 +1,27 @@
+{
+    "tables": [
+        {
+            "name": "sailors",
+            "name_": "Sailor",
+            "columns": [
+                {
+                    "name": "sid",
+                    "type": "int",
+                    "primary_key": true
+                },
+                {
+                    "name": "sname",
+                    "type": "string"
+                },
+                {
+                    "name": "rating",
+                    "type": "int"
+                },
+                {
+                    "name": "age",
+                    "type": "int"
+                }
+            ]
+        }
+    ]
+}
