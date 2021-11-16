@@ -1,10 +1,14 @@
 import './App.css';
 import React, { useState, useEffect } from 'react';
 import { LiteGraph } from 'litegraph.js';
+import 'litegraph.js/css/litegraph.css';
 
 function App() {
   useEffect(() => {
     var graph = new LiteGraph.LGraph();
+    graph.configure({
+      contextMenu: false
+    });
     var canvas = new LiteGraph.LGraphCanvas("#mycanvas", graph);
 
 
