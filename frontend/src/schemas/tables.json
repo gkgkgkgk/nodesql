@@ -6,7 +6,7 @@
             "columns": [
                 {
                     "name": "sid",
-                    "type": "int",
+                    "type": "number",
                     "primary_key": true
                 },
                 {
@@ -15,11 +15,11 @@
                 },
                 {
                     "name": "rating",
-                    "type": "int"
+                    "type": "number"
                 },
                 {
                     "name": "age",
-                    "type": "int"
+                    "type": "number"
                 }
             ]
         }

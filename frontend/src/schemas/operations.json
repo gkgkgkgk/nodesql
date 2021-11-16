@@ -1,0 +1,23 @@
+{
+    "operations": [
+        {
+            "name": "Filter",
+            "inputs": 2,
+            "outputs": 1,
+            "operators": [
+                {"operator" : [">", "<", "=", ">=", "<="]}
+            ]
+        },
+        {
+            "name": "Math",
+            "inputs": [
+                {"name":"A"},
+                {"name":"B"}
+            ],
+            "outputs": 1,
+            "operators": [
+                {"operator" : ["add", "subtract", "multiply", "divide", "modulo"]}
+            ]
+        }
+    ]
+}

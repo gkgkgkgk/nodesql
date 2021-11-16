@@ -3,6 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { LiteGraph } from 'litegraph.js';
 import 'litegraph.js/css/litegraph.css';
 const { tables } = require('./schemas/tables.json');
+const { operations } = require('./schemas/operations.json');
 
 
 const createEntityBlocks = () => {
@@ -19,10 +20,40 @@ const createEntityBlocks = () => {
     };
 
     EntityNode.title = name;
-
-
     LiteGraph.registerNodeType("basic/" + name, EntityNode);
   }
+};
+
+const createOperationBlocks = () => {
+  // for(let operation of operations) {
+  //   console.log(operation);
+  //   let name = operation.name;
+  //   function OperationNode(){
+  //     for(let i = 0; i < operation.inputs; i++) {
+  //       this.addInput(i, "string");
+  //       this.addOutput(i, "string");
+  //     }
+  //   }
+
+  //   OperationNode.prototype.onExecute = function() {
+  //     this.setOutputData(0, this.getInputData(0));
+  //   };
+  //   OperationNode.title = name;
+  //   LiteGraph.registerNodeType("basic/" + name, OperationNode);
+  // }
+  function FilterNode() {
+    this.addInput("", "number");
+    this.addInput("", "number");
+    this.addOutput("", "string");
+    this.widget = this.addWidget("combo", "Operation", "=", {"values": ["=", ">", "<", ">=", "<="]});
+  }
+
+  FilterNode.prototype.onExecute = function () {
+    this.setOutputData(0, this.getInputData(0));
+  }
+
+  FilterNode.title = "Filter";
+  LiteGraph.registerNodeType("basic/Filter", FilterNode);
 };
 
 
@@ -30,27 +61,15 @@ function App() {
   useEffect(() => {
     var graph = new LiteGraph.LGraph();
     graph.configure({
-      contextMenu: false
     });
 
     var canvas = new LiteGraph.LGraphCanvas("#mycanvas", graph);
-
-
-
-    var node_const = LiteGraph.createNode("basic/const");
-    node_const.pos = [200, 200];
-    graph.add(node_const);
-    node_const.setValue(4.5);
-
-    var node_watch = LiteGraph.createNode("basic/watch");
-    node_watch.pos = [700, 200];
-    graph.add(node_watch);
-
-    node_const.connect(0, node_watch, 0);
+    graph.use_default_nodes = false;
 
     graph.start()
 
     createEntityBlocks();
+    createOperationBlocks();
   });
 
   return (
