@@ -2,7 +2,6 @@ import './App.css';
 import React, { useState, useEffect, useRef } from 'react';
 import { LiteGraph } from 'litegraph.js';
 import 'litegraph.js/css/litegraph.css';
-import Button from './components/Button';
 const { tables } = require('./schemas/tables.json');
 const { operations } = require('./schemas/operations.json');
 
@@ -21,7 +20,7 @@ const createEntityBlocks = () => {
     };
 
     EntityNode.title = name;
-    LiteGraph.registerNodeType("basic/" + name, EntityNode);
+    LiteGraph.registerNodeType("Entity/" + name, EntityNode);
   }
 };
 
@@ -38,7 +37,7 @@ const createOperationBlocks = () => {
   }
 
   FilterNode.title = "Filter";
-  LiteGraph.registerNodeType("basic/Filter", FilterNode);
+  LiteGraph.registerNodeType("Operations/Filter", FilterNode);
 
   function PerNode() {
     this.addInput();
@@ -52,7 +51,7 @@ const createOperationBlocks = () => {
   }
 
   PerNode.title = "Per";
-  LiteGraph.registerNodeType("basic/Per", PerNode);
+  LiteGraph.registerNodeType("Operations/Per", PerNode);
 };
 
 
@@ -81,6 +80,8 @@ function App() {
     var canvas = new LiteGraph.LGraphCanvas("#mycanvas", graph);
     
     graph.start()
+    LiteGraph.clearRegisteredTypes()
+
 
     createEntityBlocks();
     createOperationBlocks();
