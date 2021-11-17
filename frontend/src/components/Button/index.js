@@ -1,17 +1,11 @@
 import React, { useState, useEffect } from 'react';
 
-const Button = () => {
-    const [count, setCount] = useState(0);
-    
-    useEffect(() => {
-        document.title = `You clicked ${count} times`;
-    });
-    
+const Button = (props) => {
     return (
-        <button onClick={() => setCount(count + 1)}>
-        Click me
+        <button onClick={props.callBack}>
+        Generate SQL
         </button>
     );
-    }
+}
 
-    export default Button;
+export default Button;

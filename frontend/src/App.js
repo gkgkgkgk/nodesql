@@ -1,5 +1,5 @@
 import './App.css';
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { LiteGraph } from 'litegraph.js';
 import 'litegraph.js/css/litegraph.css';
 import Button from './components/Button';
@@ -57,24 +57,48 @@ const createOperationBlocks = () => {
 
 
 function App() {
+  var graph;
+  var canvasRef = useRef(null);
+
+
   useEffect(() => {
-    var graph = new LiteGraph.LGraph();
+
+    const handleResize = () => {
+      const ctx = canvasRef.current.getContext('2d');
+      ctx.canvas.width = window.innerWidth;
+      ctx.canvas.height = window.innerHeight;
+    };
+    
+    window.addEventListener('resize', handleResize);
+    handleResize();
+
+    graph = new LiteGraph.LGraph();
     graph.configure({
     });
 
-    var canvas = new LiteGraph.LGraphCanvas("#mycanvas", graph);
-    graph.use_default_nodes = false;
+    
 
+    var canvas = new LiteGraph.LGraphCanvas("#mycanvas", graph);
+    
     graph.start()
 
     createEntityBlocks();
     createOperationBlocks();
   });
 
+
+  const getSQL = () => {
+    // preprocess data here
+    //[link_id, origin_id, origin_slot, target_id, target_slot, link_type];
+    let serialization = graph.serialize();
+    let nodes = serialization.nodes;
+    let links = serialization.links;
+  }
+
   return (
     <div className="App">
-      <canvas id='mycanvas' width='1024' height='720' style={{ border: '1px solid' }}></canvas>
-      <Button />
+      <canvas ref={canvasRef} id='mycanvas' width='1024' height='720'></canvas>
+      {/* <Button callBack={getSQL}/> */}
     </div>
   );
 }
