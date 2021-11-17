@@ -2,6 +2,7 @@ import './App.css';
 import React, { useState, useEffect } from 'react';
 import { LiteGraph } from 'litegraph.js';
 import 'litegraph.js/css/litegraph.css';
+import Button from './components/Button';
 const { tables } = require('./schemas/tables.json');
 const { operations } = require('./schemas/operations.json');
 
@@ -25,27 +26,11 @@ const createEntityBlocks = () => {
 };
 
 const createOperationBlocks = () => {
-  // for(let operation of operations) {
-  //   console.log(operation);
-  //   let name = operation.name;
-  //   function OperationNode(){
-  //     for(let i = 0; i < operation.inputs; i++) {
-  //       this.addInput(i, "string");
-  //       this.addOutput(i, "string");
-  //     }
-  //   }
-
-  //   OperationNode.prototype.onExecute = function() {
-  //     this.setOutputData(0, this.getInputData(0));
-  //   };
-  //   OperationNode.title = name;
-  //   LiteGraph.registerNodeType("basic/" + name, OperationNode);
-  // }
   function FilterNode() {
-    this.addInput("", "number");
-    this.addInput("", "number");
-    this.addOutput("", "string");
+    this.addInput();
     this.widget = this.addWidget("combo", "Operation", "=", {"values": ["=", ">", "<", ">=", "<="]});
+    this.addInput();
+    this.addOutput();
   }
 
   FilterNode.prototype.onExecute = function () {
@@ -54,6 +39,20 @@ const createOperationBlocks = () => {
 
   FilterNode.title = "Filter";
   LiteGraph.registerNodeType("basic/Filter", FilterNode);
+
+  function PerNode() {
+    this.addInput();
+    this.addInput();
+    this.widget = this.addWidget("combo", "Operation", "AVG", {"values": ["AVG", "COUNT", "MIN", "MAX"]});
+    this.addOutput();
+  }
+
+  PerNode.prototype.onExecute = function () {
+    this.setOutputData(0, this.getInputData(0));
+  }
+
+  PerNode.title = "Per";
+  LiteGraph.registerNodeType("basic/Per", PerNode);
 };
 
 
@@ -75,6 +74,7 @@ function App() {
   return (
     <div className="App">
       <canvas id='mycanvas' width='1024' height='720' style={{ border: '1px solid' }}></canvas>
+      <Button />
     </div>
   );
 }
