@@ -7,9 +7,20 @@ from sqlalchemy.sql.functions import rank
 from flask import Flask
 from flask_restful import Api, Resource
 
+# TODO:
+# - parse the node links
+# - generate sql query
+# - deynamically create classes based on the table names
+
+
+def initialize_db(db_url):
+    base = declarative_base()
+    engine = create_engine(db_url)
+    base.metadata.create_all(engine)
+    return engine
+
 app = Flask(__name__)
 api = Api(app)
-
 
 class Main(Resource):
     def post(self):
