@@ -93,12 +93,12 @@ function App() {
     let serialization = graph.serialize();
     let nodes = serialization.nodes;
     let links = serialization.links;
+    console.log(serialization);
   }
 
   return (
     <div className="App">
       <canvas ref={canvasRef} id='mycanvas' width='1024' height='720'></canvas>
-      {/* <Button callBack={getSQL}/> */}
     </div>
   );
 }
