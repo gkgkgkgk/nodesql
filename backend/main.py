@@ -32,6 +32,8 @@ app = Flask(__name__)
 
 
 def generateQuery(nodes, links):
+    # query to get average rating per age
+    # query = db.query(sailors.age, func.avg(sailors.rating)).group_by(sailors.age).all()
     result = db.query(func.avg(sailors.age)).filter(sailors.rating == 10).scalar()
     query = str(db.query(func.avg(sailors.age)).filter(sailors.rating == 10))
     return result, query
