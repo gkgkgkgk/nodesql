@@ -20,15 +20,18 @@ const createEntityBlocks = () => {
     };
 
     EntityNode.title = name;
+    EntityNode.color = "#00470f";
+    EntityNode.bgcolor = "#002307";
     LiteGraph.registerNodeType("Entity/" + name, EntityNode);
   }
 };
 
+// https://www.color-hex.com/color-palette/3657
 const createOperationBlocks = () => {
   function FilterNode() {
-    this.addInput();
-    this.widget = this.addWidget("combo", "Operation", "=", {"values": ["=", ">", "<", ">=", "<="]});
-    this.addInput();
+    this.addInput("a");
+    this.widget = this.addWidget("combo", "Operation", "a = b", { "values": ["a = b", "a > b", "a < b", "a >= b", "a <= b"] });
+    this.addInput("b");
     this.addOutput();
   }
 
@@ -37,12 +40,14 @@ const createOperationBlocks = () => {
   }
 
   FilterNode.title = "Filter";
+  FilterNode.color = "#600000";
+  FilterNode.bgcolor = "#300000";
   LiteGraph.registerNodeType("Operations/Filter", FilterNode);
 
   function PerNode() {
-    this.addInput();
-    this.addInput();
-    this.widget = this.addWidget("combo", "Operation", "AVG", {"values": ["AVG", "COUNT", "MIN", "MAX"]});
+    this.addInput("a");
+    this.addInput("b");
+    this.widget = this.addWidget("combo", "Operation", "AVG", { "values": ["AVG", "COUNT", "MIN", "MAX"] });
     this.addOutput();
   }
 
@@ -51,7 +56,34 @@ const createOperationBlocks = () => {
   }
 
   PerNode.title = "Per";
+  PerNode.color = "#600000";
+  PerNode.bgcolor = "#300000";
   LiteGraph.registerNodeType("Operations/Per", PerNode);
+
+  function DisplayNode() {
+    this.addInput();
+  }
+
+  DisplayNode.prototype.onExecute = function () {
+
+  }
+
+  DisplayNode.title = "Display";
+  DisplayNode.color = "#120149";
+  DisplayNode.bgcolor = "#090024";
+  LiteGraph.registerNodeType("Operations/Display", DisplayNode);
+
+  function NumberNode() {
+    this.widget = this.addWidget("number", "Value", 0);
+    this.addOutput();
+  }
+
+  NumberNode.prototype.onExecute = function () {
+    this.setOutputData(0, this.getInputData(0));
+  }
+
+  NumberNode.title = "Number";
+  LiteGraph.registerNodeType("Misc/Number", NumberNode);
 };
 
 
@@ -67,7 +99,7 @@ function App() {
       ctx.canvas.width = window.innerWidth;
       ctx.canvas.height = window.innerHeight;
     };
-    
+
     window.addEventListener('resize', handleResize);
     handleResize();
 
@@ -75,10 +107,10 @@ function App() {
     graph.configure({
     });
 
-    
+
 
     var canvas = new LiteGraph.LGraphCanvas("#mycanvas", graph);
-    
+
     graph.start()
     LiteGraph.clearRegisteredTypes()
 
