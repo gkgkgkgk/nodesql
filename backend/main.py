@@ -12,12 +12,11 @@ from flask_restful import Api, Resource
 # - generate sql query
 # - deynamically create classes based on the table names
 
-
-def initialize_db(db_url):
-    base = declarative_base()
-    engine = create_engine(db_url)
-    base.metadata.create_all(engine)
-    return engine
+base = declarative_base()
+engine = create_engine('sqlite:///:memory:', echo=True)
+db = Session(engine)
+base.metadata.create_all(engine)
+conn = engine.connect()
 
 app = Flask(__name__)
 api = Api(app)
