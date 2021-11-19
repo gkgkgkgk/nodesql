@@ -44,6 +44,9 @@ function App() {
           }
         }
 
+        stringFields.push('custom input');
+        stringFields.push('external node');
+
         node.widgets[2].options.values = stringFields;
         node.widgets[2].value = stringFields[0];
       }
@@ -58,6 +61,9 @@ function App() {
           }
         }
 
+        numberFields.push('custom input');
+        numberFields.push('external node');
+
         node.widgets[2].options.values = numberFields;
         node.widgets[2].value = numberFields[0];
       }
@@ -65,7 +71,37 @@ function App() {
     };
 
     const adjustWidgets2 = (value, widget, node) => {
-      // deal with optional typed input or node input
+      if (value === 'external node') {
+        // check if node has input 'value'
+        if (node.inputs.length <= 1) {
+          node.addInput('value', 'any');
+        }
+      }
+      else {
+        node.removeInput(1);
+      }
+
+      let type;
+      for (let field of node.properties.Fields) {
+        if (field.name === node.widgets[0].value) {
+          type = field.type;
+        }
+      }
+
+      if (value == 'custom input') {
+        if (type == 'string') {
+          node.addWidget("text", "Custom Input", "");
+        }
+        else if (type == 'number') {
+          node.addWidget("number", "Custom Input", 0);
+        }
+      }
+      else {
+        // remove last element from node.widgets
+        if (node.widgets.at(-1).name === 'Custom Input') {
+          node.widgets.pop();
+        }
+      }
     };
     function FilterNode() {
       this.addProperty('Fields', [], 'array');
@@ -81,6 +117,7 @@ function App() {
     FilterNode.prototype.onConnectionsChange = function (type, link) {
       let node = getNodeFromLink(link);
       let fieldValues = [];
+
       for (let i = 1; i < node.outputs.length; i++) {
         this.properties.Fields[i - 1] = node.outputs[i];
         fieldValues.push(node.outputs[i].name);
@@ -98,7 +135,7 @@ function App() {
     for (let table of tables) {
       let name = table.name_;
       function EntityNode() {
-        this.addOutput(table.name_);
+        this.addOutput(table.name_, "Entity");
         for (let field of table.columns) {
           this.addOutput(field.name, field.type);
         }
