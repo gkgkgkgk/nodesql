@@ -5,190 +5,115 @@ import 'litegraph.js/css/litegraph.css';
 const { tables } = require('./schemas/tables.json');
 const { operations } = require('./schemas/operations.json');
 
-
-const createEntityBlocks = () => {
-  for (let table of tables) {
-    let name = table.name_;
-    function EntityNode() {
-      for (let field of table.columns) {
-        this.addOutput(field.name, field.type);
-      }
-    }
-
-    EntityNode.prototype.onExecute = function () {
-      this.setOutputData(0, this.getInputData(0));
-    };
-
-    EntityNode.title = name;
-    EntityNode.color = "#00470f";
-    EntityNode.bgcolor = "#002307";
-    LiteGraph.registerNodeType("Entity/" + name, EntityNode);
-  }
-};
-
-// https://www.color-hex.com/color-palette/3657
-const createOperationBlocks = () => {
-  function FilterNode() {
-    this.addInput("a");
-    this.widget = this.addWidget("combo", "Operation", "a = b", { "values": ["a = b", "a > b", "a < b", "a >= b", "a <= b"] });
-    this.addInput("b");
-    this.addOutput();
-    this.addProperty("entity_type", "null");
-  }
-
-  FilterNode.prototype.onExecute = function () {
-    this.setOutputData(0, this.getInputData(0));
-  }
-
-  FilterNode.prototype.onConnectInput = function (slot, input) {
-    let link_id = this.inputs[slot];
-    console.log(this.inputs[slot]);
-    console.log(slot);
-  }
-
-  FilterNode.title = "Filter";
-  FilterNode.color = "#600000";
-  FilterNode.bgcolor = "#300000";
-  LiteGraph.registerNodeType("Operations/Filter", FilterNode);
-
-  function NewFilterNode() {
-    this.addInput("a");
-    this.addInput("b");
-    this.widget = this.addWidget("combo", "Field", "sid", { "values": ["sid", "sname", "rating", "age"] });
-    this.addWidget("combo", "Operation", "=", { "values": ["=", ">", "<", ">=", "<="] });
-    this.addWidget("text", "", "100");
-    this.addOutput();
-    this.addProperty("entity_type", "null");
-    this.addOutput("OR");
-    this.addOutput("AND");
-  }
-
-  NewFilterNode.prototype.onExecute = function () {
-    this.setOutputData(0, this.getInputData(0));
-  }
-
-  NewFilterNode.prototype.onConnectInput = function (slot, input) {
-    let link_id = this.inputs[slot];
-    console.log(this.inputs[slot]);
-    console.log(slot);
-  }
-
-  NewFilterNode.title = "Filter";
-  NewFilterNode.color = "#600000";
-  NewFilterNode.bgcolor = "#300000";
-  LiteGraph.registerNodeType("Operations/New Filter", NewFilterNode);
-
-  function PerNode() {
-    this.addInput("a");
-    this.addInput("b");
-    this.widget = this.addWidget("combo", "Operation", "AVG", { "values": ["AVG", "COUNT", "MIN", "MAX"] });
-    this.addOutput();
-  }
-
-  PerNode.prototype.onExecute = function () {
-    this.setOutputData(0, this.getInputData(0));
-  }
-
-  PerNode.title = "Per";
-  PerNode.color = "#600000";
-  PerNode.bgcolor = "#300000";
-  LiteGraph.registerNodeType("Operations/Per", PerNode);
-
-  function DisplayNode() {
-    this.addInput();
-  }
-
-  DisplayNode.prototype.onExecute = function () {
-
-  }
-
-  DisplayNode.title = "Display";
-  DisplayNode.color = "#120149";
-  DisplayNode.bgcolor = "#090024";
-  LiteGraph.registerNodeType("Display/Display", DisplayNode);
-
-  function NumberNode() {
-    this.addOutput("value", "number");
-    this.addProperty("value", 1.0);
-    this.widget = this.addWidget("number", "value", 1, "value");
-    this.widgets_up = true;
-    this.size = [180, 30];
-  }
-
-  NumberNode.title = "Number";
-
-  NumberNode.prototype.onExecute = function () {
-    this.setOutputData(0, parseFloat(this.properties["value"]));
-  };
-
-  NumberNode.prototype.getTitle = function () {
-    if (this.flags.collapsed) {
-      return this.properties.value;
-    }
-    return this.title;
-  };
-
-  NumberNode.prototype.setValue = function (v) {
-    this.setProperty("value", v);
-  }
-
-  NumberNode.prototype.onDrawBackground = function (ctx) {
-    this.outputs[0].label = this.properties["value"].toFixed(3);
-  };
-  LiteGraph.registerNodeType("Misc/Number", NumberNode);
-
-  function GenericEntity() {
-    this.addInput("entity");
-  }
-
-  GenericEntity.title = "Generic Entity";
-
-  GenericEntity.prototype.onExecute = function () {
-    this.setOutputData(0, this.getInputData(0));
-  }
-
-  GenericEntity.prototype.onConnectInput = function () {
-    let inputs = this.inputs;
-    let link_id = this.inputs[0].link;
-  }
-
-  LiteGraph.registerNodeType("Entity/Generic Entity", GenericEntity);
-
-  function LogicNode() {
-    this.addOutput("a");
-    this.addOutput("b");
-    this.widget = this.addWidget("combo", "Operation", "AND", { "values": ["AND", "OR"] });
-    this.addInput();
-  }
-
-  LogicNode.prototype.onExecute = function () {
-    this.setOutputData(0, this.getInputData(0));
-  }
-
-  LogicNode.title = "OR";
-  LogicNode.color = "#600000";
-  LogicNode.bgcolor = "#300000";
-  LiteGraph.registerNodeType("Operations/Logic", LogicNode);
-
-  function PeekNode() {
-    this.addOutput();
-    this.addInput();
-  }
-
-  PeekNode.prototype.onExecute = function () {
-    this.setOutputData(0, this.getInputData(0));
-  }
-
-  PeekNode.title = "Peek";
-  PeekNode.color = "#006060";
-  PeekNode.bgcolor = "#003030";
-  LiteGraph.registerNodeType("Display/Peek", PeekNode);
-};
-
-
 function App() {
   var graph;
   var canvasRef = useRef(null);
+
+  const getNodeFromLink = id => {
+    let serialized = graph.serialize();
+    let links = serialized.links;
+    let origin_id;
+
+    for (let l of links) {
+      if (l[5] === id) {
+        origin_id = l[1];
+      }
+    }
+
+    return graph.getNodeById(origin_id);
+  };
+
+  const createOperationBlocks = () => {
+
+    const adjustWidgets0 = (value, widget, node) => {
+      let type;
+      for (let field of node.properties.Fields) {
+        if (field.name === value) {
+          type = field.type;
+        }
+      }
+
+      if (type === 'string') {
+        node.widgets[1].options.values = ['is the same as', 'starts with', 'ends with'];
+        node.widgets[1].value = 'is the same as';
+
+        let stringFields = [];
+        for (let field of node.properties.Fields) {
+          if (field.type === 'string') {
+            stringFields.push(field.name);
+          }
+        }
+
+        node.widgets[2].options.values = stringFields;
+        node.widgets[2].value = stringFields[0];
+      }
+      else if (type === 'number') {
+        node.widgets[1].options.values = ['=', '<', '>', '<=', '>='];
+        node.widgets[1].value = '=';
+
+        let numberFields = [];
+        for (let field of node.properties.Fields) {
+          if (field.type === 'number') {
+            numberFields.push(field.name);
+          }
+        }
+
+        node.widgets[2].options.values = numberFields;
+        node.widgets[2].value = numberFields[0];
+      }
+      console.log(node.inputs);
+    };
+
+    const adjustWidgets2 = (value, widget, node) => {
+      // deal with optional typed input or node input
+    };
+    function FilterNode() {
+      this.addProperty('Fields', [], 'array');
+      this.addInput("entity");
+      this.addWidget("combo", "Field", "Field", adjustWidgets0, { "values": [''] });
+      this.addWidget("combo", "Operation", '', { "values": [''] });
+      this.addWidget("combo", "Field", '', adjustWidgets2, { "values": [''] });
+    }
+
+    FilterNode.prototype.onExecute = function () {
+    };
+
+    FilterNode.prototype.onConnectionsChange = function (type, link) {
+      let node = getNodeFromLink(link);
+      let fieldValues = [];
+      for (let i = 1; i < node.outputs.length; i++) {
+        this.properties.Fields[i - 1] = node.outputs[i];
+        fieldValues.push(node.outputs[i].name);
+      }
+      this.widgets[0].options.values = fieldValues;
+      this.widgets[0].value = fieldValues[0];
+      // adjustWidgets();
+    };
+
+    FilterNode.title = "Filter";
+    LiteGraph.registerNodeType("Operations/Filter", FilterNode);
+  };
+
+  const createEntityBlocks = () => {
+    for (let table of tables) {
+      let name = table.name_;
+      function EntityNode() {
+        this.addOutput(table.name_);
+        for (let field of table.columns) {
+          this.addOutput(field.name, field.type);
+        }
+      }
+
+      EntityNode.prototype.onExecute = function () {
+        this.setOutputData(0, this.getInputData(0));
+      };
+
+      EntityNode.title = name;
+      EntityNode.color = "#00470f";
+      EntityNode.bgcolor = "#002307";
+      LiteGraph.registerNodeType("Entity/" + name, EntityNode);
+    }
+  };
 
   useEffect(() => {
 
