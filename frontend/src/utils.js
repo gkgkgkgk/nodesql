@@ -8,6 +8,7 @@ const init = (g) => {
 
     createEntityBlocks();
     createFilterBlock();
+    createDisplayBlock();
 };
 
 const getNodeFromLink = id => {
@@ -145,6 +146,7 @@ const createFilterBlock = () => {
     function FilterNode() {
         this.addProperty('Fields', [], 'array');
         this.addInput("entity");
+        this.addOutput("output");
         this.addWidget("combo", "Field", "Field", adjustWidgets0, { "values": [''] });
         this.addWidget("combo", "Operation", '', { "values": [''] });
         this.addWidget("combo", "Field", '', adjustWidgets2, { "values": [''] });
@@ -157,20 +159,52 @@ const createFilterBlock = () => {
         if (slotIndex === 0) {
             let node = graph.getNodeById(link.origin_id);
             let fieldValues = [];
+            let outputs = [];
 
-            for (let i = 1; i < node.outputs.length; i++) {
-                this.properties.Fields[i - 1] = node.outputs[i];
-                fieldValues.push(node.outputs[i].name);
+            if (node.type == "Operations/Filter") {
+                outputs = node.properties.Fields;
+                for (let i = 0; i < outputs.length; i++) {
+                    this.properties.Fields[i] = outputs[i];
+                    fieldValues.push(outputs[i].name);
+                }
             }
+            else {
+                outputs = node.outputs;
+                for (let i = 1; i < outputs.length; i++) {
+                    this.properties.Fields[i - 1] = outputs[i];
+                    fieldValues.push(outputs[i].name);
+                }
+            }
+
             this.widgets[0].options.values = fieldValues;
             this.widgets[0].value = fieldValues[0];
-            // adjustWidgets();
         }
     };
 
     FilterNode.title = "Filter";
     LiteGraph.registerNodeType("Operations/Filter", FilterNode);
-}
+};
+
+const createDisplayBlock = () => {
+    function DisplayNode() {
+        this.addInput("entity");
+    }
+
+    DisplayNode.prototype.onExecute = function () {
+    };
+
+    DisplayNode.prototype.onConnectionsChange = function (type, slotIndex, isConnected, link, ioSlot) {
+        if (isConnected) {
+            this.addInput("entity");
+        }
+        else {
+            this.removeInput(slotIndex);
+        }
+    };
+
+    DisplayNode.title = "Display";
+    LiteGraph.registerNodeType("Display/Display", DisplayNode);
+};
 
 const getSQL = () => {
     // preprocess data here
@@ -213,7 +247,7 @@ const getSQL = () => {
 
     console.log(sqlJson);
     console.log(serialization);
-}
+};
 
 export default init;
 
