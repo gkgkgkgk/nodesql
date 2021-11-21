@@ -2,7 +2,7 @@ import './App.css';
 import React, { useState, useEffect, useRef } from 'react';
 import { LiteGraph } from 'litegraph.js';
 import 'litegraph.js/css/litegraph.css';
-import init from './utils';
+import { init, getSQL } from './utils';
 const { operations } = require('./schemas/operations.json');
 
 function App() {
@@ -19,7 +19,7 @@ function App() {
 
     const handleKeyDown = (e) => {
       if (e.key === 's') {
-        // getSQL(); TODO: fix this
+        getSQL();
       }
     };
 

@@ -66,6 +66,7 @@ const createEntityBlocks = () => {
 
 const createFilterBlock = () => {
     const adjustWidgets0 = (value, widget, node) => {
+        console.log(widget);
         let type;
         for (let field of node.properties.Fields) {
             if (field.name === value) {
@@ -84,8 +85,8 @@ const createFilterBlock = () => {
                 }
             }
 
-            stringFields.push('custom input');
             stringFields.push('external node');
+            stringFields.push('custom input');
 
             node.widgets[2].options.values = stringFields;
             node.widgets[2].value = stringFields[0];
@@ -101,8 +102,8 @@ const createFilterBlock = () => {
                 }
             }
 
-            numberFields.push('custom input');
             numberFields.push('external node');
+            numberFields.push('custom input');
 
             node.widgets[2].options.values = numberFields;
             node.widgets[2].value = numberFields[0];
@@ -129,6 +130,7 @@ const createFilterBlock = () => {
         }
 
         if (value === 'custom input') {
+            // todo: make sure not to add widget if custom input already exists
             if (type === 'string') {
                 node.addWidget("text", "Custom Input", "");
             }
@@ -203,6 +205,8 @@ const createDisplayBlock = () => {
     };
 
     DisplayNode.title = "Display";
+    DisplayNode.color = "#00004d";
+    DisplayNode.bgcolor = "#000034";
     LiteGraph.registerNodeType("Display/Display", DisplayNode);
 };
 
@@ -210,45 +214,8 @@ const getSQL = () => {
     // preprocess data here
     //[link_id, origin_id, origin_slot, target_id, target_slot, link_type];
     let serialization = graph.serialize();
-    let nodes = serialization.nodes;
-    let links = serialization.links;
-    let sqlJson = [];
 
-    // order nodes
-    nodes.sort((a, b) => {
-        return a.order - b.order;
-    });
-
-    for (let node of nodes) {
-        if (node.type.substring(0, node.type.indexOf('/')) === 'Operations') {
-            let o = { "operationType": node.type, inputs: [] };
-
-            for (let i = 0; i < links.length; i++) {
-                console.log(links[i]); // this is 0 for some reason...
-                let l = links[i];
-                if (l[3] === node.id) {
-                    let origin;
-                    console.log(nodes);
-                    for (let j = 0; j < nodes.length; j++) {
-                        if (nodes[j].id === l[1]) {
-                            origin = nodes[j];
-                        }
-                    }
-                    o.inputs[l[4]] = { "origin": origin, "output": origin.outputs[l[2]] };
-                }
-            }
-
-            sqlJson.push(o);
-        }
-        else if (node.type.substring(0, node.type.indexOf('/')) === 'Display') {
-
-        }
-    }
-
-    console.log(sqlJson);
     console.log(serialization);
 };
 
-export default init;
-
-//[link_id, origin_id, origin_slot, target_id, target_slot, link_type];
+export { init, getSQL };
