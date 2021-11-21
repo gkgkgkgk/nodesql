@@ -14,14 +14,32 @@ const getNodeFromLink = id => {
     let serialized = graph.serialize();
     let links = serialized.links;
     let origin_id;
+    let target_id;
 
+    console.log(links);
+    console.log(serialized.nodes);
+    console.log(id);
     for (let l of links) {
         if (l[5] === id) {
             origin_id = l[1];
+            target_id = l[3];
         }
     }
 
-    return graph.getNodeById(origin_id);
+    return [graph.getNodeById(origin_id), graph.getNodeById(target_id)];
+};
+
+const getLink = id => {
+    let serialized = graph.serialize();
+    let links = serialized.links;
+
+    for (let l of links) {
+        console.log(l);
+        console.log(id);
+        if (l[0] === id) {
+            return l;
+        }
+    }
 };
 
 const createEntityBlocks = () => {
@@ -95,7 +113,7 @@ const createFilterBlock = () => {
         if (value === 'external node') {
             // check if node has input 'value'
             if (node.inputs.length <= 1) {
-                node.addInput('value', 'any');
+                node.addInput('value');
             }
         }
         else {
@@ -109,11 +127,11 @@ const createFilterBlock = () => {
             }
         }
 
-        if (value == 'custom input') {
-            if (type == 'string') {
+        if (value === 'custom input') {
+            if (type === 'string') {
                 node.addWidget("text", "Custom Input", "");
             }
-            else if (type == 'number') {
+            else if (type === 'number') {
                 node.addWidget("number", "Custom Input", 0);
             }
         }
@@ -135,17 +153,19 @@ const createFilterBlock = () => {
     FilterNode.prototype.onExecute = function () {
     };
 
-    FilterNode.prototype.onConnectionsChange = function (type, link) {
-        let node = getNodeFromLink(link);
-        let fieldValues = [];
+    FilterNode.prototype.onConnectionsChange = function (type, slotIndex, isConnected, link, ioSlot) {
+        if (slotIndex === 0) {
+            let node = graph.getNodeById(link.origin_id);
+            let fieldValues = [];
 
-        for (let i = 1; i < node.outputs.length; i++) {
-            this.properties.Fields[i - 1] = node.outputs[i];
-            fieldValues.push(node.outputs[i].name);
+            for (let i = 1; i < node.outputs.length; i++) {
+                this.properties.Fields[i - 1] = node.outputs[i];
+                fieldValues.push(node.outputs[i].name);
+            }
+            this.widgets[0].options.values = fieldValues;
+            this.widgets[0].value = fieldValues[0];
+            // adjustWidgets();
         }
-        this.widgets[0].options.values = fieldValues;
-        this.widgets[0].value = fieldValues[0];
-        // adjustWidgets();
     };
 
     FilterNode.title = "Filter";
@@ -196,3 +216,5 @@ const getSQL = () => {
 }
 
 export default init;
+
+//[link_id, origin_id, origin_slot, target_id, target_slot, link_type];
