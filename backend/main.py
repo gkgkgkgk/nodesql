@@ -7,6 +7,8 @@ from sqlalchemy.sql.functions import rank
 from flask import Flask
 from flask import request
 from flask import jsonify
+from flask_cors import CORS
+
 
 # TODO:
 # - parse the node links
@@ -29,6 +31,7 @@ class sailors(base):
 
 
 app = Flask(__name__)
+cors = CORS(app)
 
 
 def generateQuery(nodes, links):
@@ -36,7 +39,10 @@ def generateQuery(nodes, links):
     # query = db.query(sailors.age, func.avg(sailors.rating)).group_by(sailors.age).all()
     result = db.query(func.avg(sailors.age)).filter(sailors.rating == 10).scalar()
     query = str(db.query(func.avg(sailors.age)).filter(sailors.rating == 10))
-    return result, query
+    q1 = db.query(sailors.age).filter(sailors.rating <= 5).subquery()
+    q = db.query(func.avg(q1.c.age)).scalar()
+    print(q)
+    return q
 
 
 @app.route('/', methods=['POST'])

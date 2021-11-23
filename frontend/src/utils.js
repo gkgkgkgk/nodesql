@@ -1,14 +1,15 @@
 import { LiteGraph } from 'litegraph.js';
+import axios from 'axios';
 const { tables } = require('./schemas/tables.json');
 
 var graph;
 
-const init = (g) => {
+const init = (g, showModal) => {
     graph = g;
 
     createEntityBlocks();
     createFilterBlock();
-    createDisplayBlock();
+    createDisplayBlock(showModal);
 };
 
 const getNodeFromLink = id => {
@@ -65,8 +66,16 @@ const createEntityBlocks = () => {
 };
 
 const createFilterBlock = () => {
+    const setCustomValue = (value, widget, node) => {
+        node.properties.CustomValue = value;
+    };
+
+    const setOperation = (value, widget, node) => {
+        node.properties.Operation = value;
+    };
+
     const adjustWidgets0 = (value, widget, node) => {
-        console.log(widget);
+        node.properties.Field = value;
         let type;
         for (let field of node.properties.Fields) {
             if (field.name === value) {
@@ -77,6 +86,7 @@ const createFilterBlock = () => {
         if (type === 'string') {
             node.widgets[1].options.values = ['is the same as', 'starts with', 'ends with'];
             node.widgets[1].value = 'is the same as';
+            node.properties.Operation = 'is the same as';
 
             let stringFields = [];
             for (let field of node.properties.Fields) {
@@ -90,10 +100,12 @@ const createFilterBlock = () => {
 
             node.widgets[2].options.values = stringFields;
             node.widgets[2].value = stringFields[0];
+            node.properties.Field2 = stringFields[0];
         }
         else if (type === 'number') {
             node.widgets[1].options.values = ['=', '<', '>', '<=', '>='];
             node.widgets[1].value = '=';
+            node.properties.Operation = '=';
 
             let numberFields = [];
             for (let field of node.properties.Fields) {
@@ -107,11 +119,12 @@ const createFilterBlock = () => {
 
             node.widgets[2].options.values = numberFields;
             node.widgets[2].value = numberFields[0];
+            node.properties.Field2 = numberFields[0];
         }
-        console.log(node.inputs);
     };
 
     const adjustWidgets2 = (value, widget, node) => {
+        node.properties.Field2 = value;
         if (value === 'external node') {
             // check if node has input 'value'
             if (node.inputs.length <= 1) {
@@ -132,10 +145,10 @@ const createFilterBlock = () => {
         if (value === 'custom input') {
             // todo: make sure not to add widget if custom input already exists
             if (type === 'string') {
-                node.addWidget("text", "Custom Input", "");
+                node.addWidget("text", "Custom Input", "", setCustomValue);
             }
             else if (type === 'number') {
-                node.addWidget("number", "Custom Input", 0);
+                node.addWidget("number", "Custom Input", 0, setCustomValue);
             }
         }
         else {
@@ -150,8 +163,9 @@ const createFilterBlock = () => {
         this.addInput("entity");
         this.addOutput("output");
         this.addWidget("combo", "Field", "Field", adjustWidgets0, { "values": [''] });
-        this.addWidget("combo", "Operation", '', { "values": [''] });
+        this.addWidget("combo", "Operation", '', setOperation, { "values": [''] });
         this.addWidget("combo", "Field", '', adjustWidgets2, { "values": [''] });
+        this.properties = { Field: "", Field2: "", CustomValue: "", Operation: "", Fields: [] };
     }
 
     FilterNode.prototype.onExecute = function () {
@@ -181,15 +195,23 @@ const createFilterBlock = () => {
             this.widgets[0].options.values = fieldValues;
             this.widgets[0].value = fieldValues[0];
         }
+        else if (slotIndex == 1) {
+            let node = graph.getNodeById(link.origin_id);
+            this.properties.CustomValue = node.properties.Output;
+        }
     };
 
     FilterNode.title = "Filter";
     LiteGraph.registerNodeType("Operations/Filter", FilterNode);
 };
 
-const createDisplayBlock = () => {
+const createDisplayBlock = showModal => {
+    const show = () => {
+        showModal(true);
+    }
     function DisplayNode() {
         this.addInput("entity");
+        this.addWidget("button", "Run Query", "", show);
     }
 
     DisplayNode.prototype.onExecute = function () {
@@ -213,9 +235,350 @@ const createDisplayBlock = () => {
 const getSQL = () => {
     // preprocess data here
     //[link_id, origin_id, origin_slot, target_id, target_slot, link_type];
-    let serialization = graph.serialize();
+    // let serialization = graph.serialize();
+    console.log(graph.serialize());
+    let serialization = {
+        "last_node_id": 3,
+        "last_link_id": 3,
+        "nodes": [
+            {
+                "id": 1,
+                "type": "Display/Display",
+                "pos": [
+                    1251,
+                    625
+                ],
+                "size": {
+                    "0": 140,
+                    "1": 46
+                },
+                "flags": {},
+                "order": 2,
+                "mode": 0,
+                "inputs": [
+                    {
+                        "name": "entity",
+                        "type": 0,
+                        "link": 3
+                    },
+                    {
+                        "name": "entity",
+                        "type": 0,
+                        "link": null
+                    }
+                ],
+                "properties": {}
+            },
+            {
+                "id": 3,
+                "type": "Operations/Filter",
+                "pos": [
+                    900,
+                    556
+                ],
+                "size": {
+                    "0": 210,
+                    "1": 130
+                },
+                "flags": {},
+                "order": 1,
+                "mode": 0,
+                "inputs": [
+                    {
+                        "name": "entity",
+                        "type": 0,
+                        "link": 2
+                    }
+                ],
+                "outputs": [
+                    {
+                        "name": "output",
+                        "links": [
+                            3
+                        ]
+                    }
+                ],
+                "properties": {
+                    "Fields": [
+                        {
+                            "name": "sid",
+                            "type": "number",
+                            "links": null
+                        },
+                        {
+                            "name": "sname",
+                            "type": "string",
+                            "links": null
+                        },
+                        {
+                            "name": "rating",
+                            "type": "number",
+                            "links": null
+                        },
+                        {
+                            "name": "age",
+                            "type": "number",
+                            "links": null
+                        }
+                    ]
+                }
+            },
+            {
+                "id": 2,
+                "type": "Entity/Sailor",
+                "pos": [
+                    635,
+                    581
+                ],
+                "size": {
+                    "0": 140,
+                    "1": 106
+                },
+                "flags": {},
+                "order": 0,
+                "mode": 0,
+                "outputs": [
+                    {
+                        "name": "Sailor",
+                        "type": "Entity",
+                        "links": [
+                            2
+                        ]
+                    },
+                    {
+                        "name": "sid",
+                        "type": "number",
+                        "links": null
+                    },
+                    {
+                        "name": "sname",
+                        "type": "string",
+                        "links": null
+                    },
+                    {
+                        "name": "rating",
+                        "type": "number",
+                        "links": null
+                    },
+                    {
+                        "name": "age",
+                        "type": "number",
+                        "links": null
+                    }
+                ],
+                "properties": {}
+            }
+        ],
+        "links": [
+            [
+                2,
+                2,
+                0,
+                3,
+                0,
+                0
+            ],
+            [
+                3,
+                3,
+                0,
+                1,
+                0,
+                0
+            ]
+        ],
+        "groups": [],
+        "config": {},
+        "extra": {},
+        "version": 0.4
+    };
 
-    console.log(serialization);
+    let nodes = serialization.nodes;
+    let links = serialization.links;
+
+    // sort nodes by order
+    nodes.sort((a, b) => {
+        return a.order - b.order;
+    });
+
+    // console.log(nodes);
+
+    let paths = [];
+    let displayNode = serialization.nodes.find(node => node.type === 'Display/Display');
+
+    for (let i = 0; i < displayNode.inputs.length; i++) {
+    }
+
+    console.log("post request");
+
+    axios.post('http://localhost:5000/', {
+        nodes: nodes,
+        links: links
+    }, { useCredentails: true }).
+        then(function (response) {
+            console.log(response);
+        }).catch(function (error) {
+            console.log(error);
+        });
+    // console.log(serialization);
 };
 
 export { init, getSQL };
+
+/* example data:
+{
+    "last_node_id": 3,
+    "last_link_id": 3,
+    "nodes": [
+        {
+            "id": 1,
+            "type": "Display/Display",
+            "pos": [
+                1251,
+                625
+            ],
+            "size": {
+                "0": 140,
+                "1": 46
+            },
+            "flags": {},
+            "order": 2,
+            "mode": 0,
+            "inputs": [
+                {
+                    "name": "entity",
+                    "type": 0,
+                    "link": 3
+                },
+                {
+                    "name": "entity",
+                    "type": 0,
+                    "link": null
+                }
+            ],
+            "properties": {}
+        },
+        {
+            "id": 3,
+            "type": "Operations/Filter",
+            "pos": [
+                900,
+                556
+            ],
+            "size": {
+                "0": 210,
+                "1": 130
+            },
+            "flags": {},
+            "order": 1,
+            "mode": 0,
+            "inputs": [
+                {
+                    "name": "entity",
+                    "type": 0,
+                    "link": 2
+                }
+            ],
+            "outputs": [
+                {
+                    "name": "output",
+                    "links": [
+                        3
+                    ]
+                }
+            ],
+            "properties": {
+                "Fields": [
+                    {
+                        "name": "sid",
+                        "type": "number",
+                        "links": null
+                    },
+                    {
+                        "name": "sname",
+                        "type": "string",
+                        "links": null
+                    },
+                    {
+                        "name": "rating",
+                        "type": "number",
+                        "links": null
+                    },
+                    {
+                        "name": "age",
+                        "type": "number",
+                        "links": null
+                    }
+                ]
+            }
+        },
+        {
+            "id": 2,
+            "type": "Entity/Sailor",
+            "pos": [
+                635,
+                581
+            ],
+            "size": {
+                "0": 140,
+                "1": 106
+            },
+            "flags": {},
+            "order": 0,
+            "mode": 0,
+            "outputs": [
+                {
+                    "name": "Sailor",
+                    "type": "Entity",
+                    "links": [
+                        2
+                    ]
+                },
+                {
+                    "name": "sid",
+                    "type": "number",
+                    "links": null
+                },
+                {
+                    "name": "sname",
+                    "type": "string",
+                    "links": null
+                },
+                {
+                    "name": "rating",
+                    "type": "number",
+                    "links": null
+                },
+                {
+                    "name": "age",
+                    "type": "number",
+                    "links": null
+                }
+            ],
+            "properties": {}
+        }
+    ],
+    "links": [
+        [
+            2,
+            2,
+            0,
+            3,
+            0,
+            0
+        ],
+        [
+            3,
+            3,
+            0,
+            1,
+            0,
+            0
+        ]
+    ],
+    "groups": [],
+    "config": {},
+    "extra": {},
+    "version": 0.4
+}
+*/

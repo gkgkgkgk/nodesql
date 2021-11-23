@@ -3,11 +3,18 @@ import React, { useState, useEffect, useRef } from 'react';
 import { LiteGraph } from 'litegraph.js';
 import 'litegraph.js/css/litegraph.css';
 import { init, getSQL } from './utils';
+import Modal from './components/Modal';
 const { operations } = require('./schemas/operations.json');
 
 function App() {
   var graph;
   var canvasRef = useRef(null);
+  const [showModal, setShowModal] = useState(false);
+
+  const setShowModalWrapper = (b) => {
+    getSQL(graph);
+    setShowModal(b);
+  }
 
   useEffect(() => {
 
@@ -39,12 +46,16 @@ function App() {
     LiteGraph.clearRegisteredTypes()
 
 
-    init(graph);
-  });
+    init(graph, setShowModalWrapper);
+    var displayNode = LiteGraph.createNode("Display/Display");
+    displayNode.pos = [window.innerWidth / 2, window.innerHeight / 2];
+    graph.add(displayNode);
+  }, []);
 
   return (
     <div className="App">
       <canvas ref={canvasRef} id='mycanvas' width='1024' height='720'></canvas>
+      <Modal showModal={showModal} setShowModal={setShowModal}></Modal>
     </div>
   );
 }
