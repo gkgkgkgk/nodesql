@@ -103,7 +103,7 @@ const createFilterBlock = () => {
             node.properties.Field2 = stringFields[0];
         }
         else if (type === 'number') {
-            node.widgets[1].options.values = ['=', '<', '>', '<=', '>='];
+            node.widgets[1].options.values = ['=', '<', '>', '<=', '>=', '!='];
             node.widgets[1].value = '=';
             node.properties.Operation = '=';
 

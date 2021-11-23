@@ -35,15 +35,39 @@ cors = CORS(app)
 
 
 def generateQuery(nodes, links):
-    # query to get average rating per age
-    # query = db.query(sailors.age, func.avg(sailors.rating)).group_by(sailors.age).all()
-    result = db.query(func.avg(sailors.age)).filter(sailors.rating == 10).scalar()
-    query = str(db.query(func.avg(sailors.age)).filter(sailors.rating == 10))
-    q1 = db.query(sailors.age).filter(sailors.rating <= 5).subquery()
-    q = db.query(func.avg(q1.c.age)).scalar()
-    print(q)
-    return q
+    operations = []
+    # get all nodes that are operations
+    for n in nodes:
+        if n["type"].startswith("Operations"):
+            if n["type"] == "Operations/Filter":
+                print("filter: ", n)
+                q = getFilterQuery(n)
+                operations.append(q)
 
+    return "yo", "hi"
+
+def getFilterQuery(filter):
+    operation = filter["properties"]["Operation"]
+    comp1 = getattr(sailors, filter["properties"]["Field"])
+    comp2 = filter["properties"]["Field2"]
+
+    if filter["properties"]["Field2"] == "custom input":
+        comp2 = filter["properties"]["CustomValue"]
+    else:
+        comp2 = getattr(sailors, comp2)
+
+    if operation == ">":
+        return db.query(sailors).filter(comp1 > comp2).subquery()
+    if operation == "<":
+        return db.query(sailors).filter(comp1 < comp2).subquery()
+    if operation == "=":
+        return db.query(sailors).filter(comp1 == comp2).subquery()
+    if operation == ">=":
+        return db.query(sailors).filter(comp1 >= comp2).subquery()
+    if operation == "<=":
+        return db.query(sailors).filter(comp1 <= comp2).subquery()
+    if operation == "!=":
+        return db.query(sailors).filter(comp1 != comp2).subquery()
 
 @app.route('/', methods=['POST'])
 def main():
