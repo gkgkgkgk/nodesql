@@ -10,6 +10,13 @@ function App() {
   var graph;
   var canvasRef = useRef(null);
   const [showModal, setShowModal] = useState(false);
+  const [query, setQuery] = useState('');
+  const [result, setResult] = useState('');
+
+  const setResponse = (query, result) => {
+    setQuery(query);
+    setResult(result);
+  }
 
   const setShowModalWrapper = (b) => {
     getSQL(graph);
@@ -46,7 +53,7 @@ function App() {
     LiteGraph.clearRegisteredTypes()
 
 
-    init(graph, setShowModalWrapper);
+    init(graph, setShowModalWrapper, setResponse);
     var displayNode = LiteGraph.createNode("Display/Display");
     displayNode.pos = [window.innerWidth / 2, window.innerHeight / 2];
     graph.add(displayNode);
@@ -55,7 +62,7 @@ function App() {
   return (
     <div className="App">
       <canvas ref={canvasRef} id='mycanvas' width='1024' height='720'></canvas>
-      <Modal showModal={showModal} setShowModal={setShowModal}></Modal>
+      <Modal showModal={showModal} setShowModal={setShowModal} query={query} result={result}></Modal>
     </div>
   );
 }
