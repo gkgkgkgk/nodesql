@@ -33,20 +33,26 @@ class sailors(base):
 app = Flask(__name__)
 cors = CORS(app)
 
-
+# TODO: implement special case for cascaded filters
 def generateQuery(nodes, links):
     operations = []
+    lastOperation = None
     # get all nodes that are operations
     for n in nodes:
         if n["type"].startswith("Operations"):
             if n["type"] == "Operations/Filter":
-                print("filter: ", n)
-                q = getFilterQuery(n)
+                q = getFilterQuery(n, lastOperation)
                 operations.append(q)
+                lastOperation = q
 
-    return "yo", "hi"
+    response = db.query(lastOperation).all()
+    print(str(response))
+    return str(response), str(q)
 
-def getFilterQuery(filter):
+def getFilterQuery(filter, subquery):
+    if subquery is None:
+        subquery = sailors
+
     operation = filter["properties"]["Operation"]
     comp1 = getattr(sailors, filter["properties"]["Field"])
     comp2 = filter["properties"]["Field2"]
@@ -57,17 +63,17 @@ def getFilterQuery(filter):
         comp2 = getattr(sailors, comp2)
 
     if operation == ">":
-        return db.query(sailors).filter(comp1 > comp2).subquery()
+        return db.query(subquery).filter(comp1 > comp2).subquery()
     if operation == "<":
-        return db.query(sailors).filter(comp1 < comp2).subquery()
+        return db.query(subquery).filter(comp1 < comp2).subquery()
     if operation == "=":
-        return db.query(sailors).filter(comp1 == comp2).subquery()
+        return db.query(subquery).filter(comp1 == comp2).subquery()
     if operation == ">=":
-        return db.query(sailors).filter(comp1 >= comp2).subquery()
+        return db.query(subquery).filter(comp1 >= comp2).subquery()
     if operation == "<=":
-        return db.query(sailors).filter(comp1 <= comp2).subquery()
+        return db.query(subquery).filter(comp1 <= comp2).subquery()
     if operation == "!=":
-        return db.query(sailors).filter(comp1 != comp2).subquery()
+        return db.query(subquery).filter(comp1 != comp2).subquery()
 
 @app.route('/', methods=['POST'])
 def main():
