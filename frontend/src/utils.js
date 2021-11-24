@@ -237,7 +237,6 @@ const createDisplayBlock = showModal => {
 const getSQL = () => {
     // preprocess data here
     //[link_id, origin_id, origin_slot, target_id, target_slot, link_type];
-    // let serialization = graph.serialize();
     console.log(graph.serialize());
     let serialization = graph.serialize();
 
@@ -248,8 +247,6 @@ const getSQL = () => {
     nodes.sort((a, b) => {
         return a.order - b.order;
     });
-
-    // console.log(nodes);
 
     let paths = [];
     let displayNode = serialization.nodes.find(node => node.type === 'Display/Display');
@@ -268,7 +265,6 @@ const getSQL = () => {
         }).catch(function (error) {
             console.log(error);
         });
-    // console.log(serialization);
 };
 
 export { init, getSQL };
