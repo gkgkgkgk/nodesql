@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
+import DataTable from '../DataTable';
 import './styles.css';
 
-const Modal = ({ showModal: show, setShowModal: setShow, query, result }) => {
+const Modal = ({ showModal: show, setShowModal: setShow, query, result, keys }) => {
     const handleClose = () => {
         setShow(false);
     }
@@ -10,7 +11,7 @@ const Modal = ({ showModal: show, setShowModal: setShow, query, result }) => {
         <div className="modal" style={{ "display": (show ? "block" : "none") }}>
             <button onClick={handleClose}>&times;</button>
             <p>{query}</p>
-            <p>{result}</p>
+            <p><DataTable keys={keys} result={result}></DataTable></p>
         </div>
     );
 }

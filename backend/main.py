@@ -17,7 +17,7 @@ from flask_cors import CORS
 
 
 base = declarative_base()
-engine = create_engine("mysql+pymysql://root:gkgkgkgk@localhost/class")
+engine = create_engine("mysql+pymysql://newuser:password@localhost/class")
 db = Session(engine)
 base.metadata.create_all(engine)
 conn = engine.connect()
@@ -45,9 +45,25 @@ def generateQuery(nodes, links):
                 operations.append(q)
                 lastOperation = q
 
-    response = db.query(lastOperation).all()
-    print(str(response))
-    return str(response), str(q)
+    response = db.query(lastOperation).all()    
+    result, keys = convertToJson(response[0].keys(), response)
+    print(keys)
+    return result, keys, str(q)
+
+def convertToJson(keys, response):
+    j = []
+    k = []
+    
+    for key in keys:
+        k.append(key)
+
+    for r in response:
+        jr = {};
+        for key in keys:
+            jr[key] = r[key]
+        j.append(jr)
+    
+    return j, k
 
 def getFilterQuery(filter, subquery):
     if subquery is None:
@@ -77,8 +93,8 @@ def getFilterQuery(filter, subquery):
 
 @app.route('/', methods=['POST'])
 def main():
-    result, query = generateQuery(request.json['nodes'], request.json['links'])
-    return jsonify({"result": result, "query": query})
+    result, keys, query = generateQuery(request.json['nodes'], request.json['links'])
+    return jsonify({"result": result, "keys": keys, "query": query})
 
 
 app.run(debug=True)

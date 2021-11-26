@@ -254,175 +254,29 @@ const getSQL = () => {
     for (let i = 0; i < displayNode.inputs.length; i++) {
     }
 
-    console.log("post request");
-
     axios.post('http://localhost:5000/', {
         nodes: nodes,
         links: links
     }, { useCredentails: true }).
         then(function (response) {
-            setResponse(response.data.query, response.data.result);
+            console.log(response.data);
+            setResponse(response.data.query, response.data.result, response.data.keys);
         }).catch(function (error) {
             console.log(error);
         });
 };
 
-export { init, getSQL };
+const convertToJson = result => {
+    let json = result.split("(");
+    // remove first and last element from array
+    json.shift();
+    json.pop();
+    // remove all close parenthesis
+    json = json.map(element => element.replace(/\)/g, ''));
 
-/* example data:
-{
-    "last_node_id": 3,
-    "last_link_id": 3,
-    "nodes": [
-        {
-            "id": 1,
-            "type": "Display/Display",
-            "pos": [
-                1251,
-                625
-            ],
-            "size": {
-                "0": 140,
-                "1": 46
-            },
-            "flags": {},
-            "order": 2,
-            "mode": 0,
-            "inputs": [
-                {
-                    "name": "entity",
-                    "type": 0,
-                    "link": 3
-                },
-                {
-                    "name": "entity",
-                    "type": 0,
-                    "link": null
-                }
-            ],
-            "properties": {}
-        },
-        {
-            "id": 3,
-            "type": "Operations/Filter",
-            "pos": [
-                900,
-                556
-            ],
-            "size": {
-                "0": 210,
-                "1": 130
-            },
-            "flags": {},
-            "order": 1,
-            "mode": 0,
-            "inputs": [
-                {
-                    "name": "entity",
-                    "type": 0,
-                    "link": 2
-                }
-            ],
-            "outputs": [
-                {
-                    "name": "output",
-                    "links": [
-                        3
-                    ]
-                }
-            ],
-            "properties": {
-                "Fields": [
-                    {
-                        "name": "sid",
-                        "type": "number",
-                        "links": null
-                    },
-                    {
-                        "name": "sname",
-                        "type": "string",
-                        "links": null
-                    },
-                    {
-                        "name": "rating",
-                        "type": "number",
-                        "links": null
-                    },
-                    {
-                        "name": "age",
-                        "type": "number",
-                        "links": null
-                    }
-                ]
-            }
-        },
-        {
-            "id": 2,
-            "type": "Entity/Sailor",
-            "pos": [
-                635,
-                581
-            ],
-            "size": {
-                "0": 140,
-                "1": 106
-            },
-            "flags": {},
-            "order": 0,
-            "mode": 0,
-            "outputs": [
-                {
-                    "name": "Sailor",
-                    "type": "Entity",
-                    "links": [
-                        2
-                    ]
-                },
-                {
-                    "name": "sid",
-                    "type": "number",
-                    "links": null
-                },
-                {
-                    "name": "sname",
-                    "type": "string",
-                    "links": null
-                },
-                {
-                    "name": "rating",
-                    "type": "number",
-                    "links": null
-                },
-                {
-                    "name": "age",
-                    "type": "number",
-                    "links": null
-                }
-            ],
-            "properties": {}
-        }
-    ],
-    "links": [
-        [
-            2,
-            2,
-            0,
-            3,
-            0,
-            0
-        ],
-        [
-            3,
-            3,
-            0,
-            1,
-            0,
-            0
-        ]
-    ],
-    "groups": [],
-    "config": {},
-    "extra": {},
-    "version": 0.4
-}
-*/
+    console.log(json);
+
+    return json;
+};
+
+export { init, getSQL, convertToJson };
