@@ -1,3 +1,4 @@
+from os import path
 from sqlalchemy import create_engine, func, Integer, String, Column, DateTime, exists, desc, select
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import Session
@@ -72,9 +73,9 @@ def generateQuery(nodes, links):
             if node["type"] == "Display/Display":
                 pathQueries.append(query)
 
-    print(pathQueries)
-    q = pathQueries[0]
-    response = db.query(pathQueries[0]).all()    
+
+    q = str( db.query(*pathQueries))
+    response = db.query(*pathQueries).all()    
     result, keys = convertToJson(response[0].keys(), response)
     print(keys)
     return result, keys, str(q)
