@@ -248,11 +248,7 @@ const getSQL = () => {
         return a.order - b.order;
     });
 
-    let paths = [];
-    let displayNode = serialization.nodes.find(node => node.type === 'Display/Display');
-
-    for (let i = 0; i < displayNode.inputs.length; i++) {
-    }
+    console.log(nodes, links);
 
     axios.post('http://localhost:5000/', {
         nodes: nodes,

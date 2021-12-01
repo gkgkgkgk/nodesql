@@ -9,13 +9,6 @@ from flask import request
 from flask import jsonify
 from flask_cors import CORS
 
-
-# TODO:
-# - parse the node links
-# - generate sql query
-# - deynamically create classes based on the table names
-
-
 base = declarative_base()
 engine = create_engine("mysql+pymysql://newuser:password@localhost/class")
 db = Session(engine)
@@ -33,19 +26,50 @@ class sailors(base):
 app = Flask(__name__)
 cors = CORS(app)
 
-# TODO: implement special case for cascaded filters
-def generateQuery(nodes, links):
-    operations = []
-    lastOperation = None
-    # get all nodes that are operations
-    for n in nodes:
-        if n["type"].startswith("Operations"):
-            if n["type"] == "Operations/Filter":
-                q = getFilterQuery(n, lastOperation)
-                operations.append(q)
-                lastOperation = q
+edges = []
 
-    response = db.query(lastOperation).all()    
+# depth first search to find al paths from a to b given array of edges and vertices
+def dfs(a, b, edges, path=[]):
+    path = path + [a]
+    if a == b:
+        return [path]
+    paths = []
+    for i in range(len(edges)):
+        if edges[i][0] == a:
+            if edges[i][1] not in path:
+                newpaths = dfs(edges[i][1], b, edges, path)
+                for newpath in newpaths:
+                    paths.append(newpath)
+    return paths        
+
+def generateQuery(nodes, links):
+    for link in links:
+        edges.append([link[1], link[3]])
+
+    paths = (dfs(nodes[0]["id"], nodes[len(nodes) - 1]["id"], edges))
+
+    # replace all ids in paths with nodes
+    for i in range(len(paths)):
+        for j in range(len(paths[i])):
+            for node in nodes:
+                if node["id"] == paths[i][j]:
+                    paths[i][j] = node
+
+    pathQueries = []
+    for i in range(len(paths)):
+        query = [];
+        lastType = "";
+        filters = [];
+        for node in range(len(paths[i])):
+            if node["type"] == "Operations/Filter":
+                if lastType == "filter":
+                    filters.append(node)
+            else:
+                if lastType == "filter":
+                    getFilterQuery(filters)
+
+    q = db.query(sailors)
+    response = db.query(q).all()    
     result, keys = convertToJson(response[0].keys(), response)
     print(keys)
     return result, keys, str(q)

@@ -11,8 +11,8 @@ function App() {
   var canvasRef = useRef(null);
   const [showModal, setShowModal] = useState(false);
   const [query, setQuery] = useState('');
-  const [result, setResult] = useState('');
-  const [keys, setKeys] = useState('');
+  const [result, setResult] = useState([]);
+  const [keys, setKeys] = useState([]);
 
   const setResponse = (query, result, keys) => {
     setQuery(query);
