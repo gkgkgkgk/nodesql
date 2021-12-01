@@ -57,19 +57,24 @@ def generateQuery(nodes, links):
 
     pathQueries = []
     for i in range(len(paths)):
-        query = [];
+        query = None;
         lastType = "";
         filters = [];
-        for node in range(len(paths[i])):
+        for node in paths[i]:
             if node["type"] == "Operations/Filter":
+                lastType = "filter"
                 if lastType == "filter":
                     filters.append(node)
             else:
                 if lastType == "filter":
-                    getFilterQuery(filters)
+                    query = (getFilterQuery(filters, query))
+                    filters = []
+            if node["type"] == "Display/Display":
+                pathQueries.append(query)
 
-    q = db.query(sailors)
-    response = db.query(q).all()    
+    print(pathQueries)
+    q = pathQueries[0]
+    response = db.query(pathQueries[0]).all()    
     result, keys = convertToJson(response[0].keys(), response)
     print(keys)
     return result, keys, str(q)
@@ -89,31 +94,35 @@ def convertToJson(keys, response):
     
     return j, k
 
-def getFilterQuery(filter, subquery):
+def getFilterQuery(filters, subquery):
     if subquery is None:
         subquery = sailors
 
-    operation = filter["properties"]["Operation"]
-    comp1 = getattr(sailors, filter["properties"]["Field"])
-    comp2 = filter["properties"]["Field2"]
+    comps = []
+    for filter in filters:
+        operation = filter["properties"]["Operation"]
+        comp1 = getattr(sailors, filter["properties"]["Field"])
+        comp2 = filter["properties"]["Field2"]
 
-    if filter["properties"]["Field2"] == "custom input":
-        comp2 = filter["properties"]["CustomValue"]
-    else:
-        comp2 = getattr(sailors, comp2)
+        if filter["properties"]["Field2"] == "custom input":
+            comp2 = filter["properties"]["CustomValue"]
+        else:
+            comp2 = getattr(sailors, comp2)
 
-    if operation == ">":
-        return db.query(subquery).filter(comp1 > comp2).subquery()
-    if operation == "<":
-        return db.query(subquery).filter(comp1 < comp2).subquery()
-    if operation == "=":
-        return db.query(subquery).filter(comp1 == comp2).subquery()
-    if operation == ">=":
-        return db.query(subquery).filter(comp1 >= comp2).subquery()
-    if operation == "<=":
-        return db.query(subquery).filter(comp1 <= comp2).subquery()
-    if operation == "!=":
-        return db.query(subquery).filter(comp1 != comp2).subquery()
+        if operation == ">":
+            comps.append(comp1 > comp2)
+        if operation == "<":
+            comps.append(comp1 < comp2)
+        if operation == "=":
+            comps.append(comp1 == comp2)
+        if operation == ">=":
+            comps.append(comp1 >= comp2)
+        if operation == "<=":
+            comps.append(comp1 <= comp2)
+        if operation == "!=":
+            comps.append(comp1 != comp2)
+
+    return db.query(subquery).filter(*comps).subquery()
 
 @app.route('/', methods=['POST'])
 def main():
