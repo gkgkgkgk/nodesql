@@ -62,6 +62,7 @@ def generateQuery(nodes, links):
         lastType = "";
         filters = [];
         for node in paths[i]:
+            print(node)
             if node["type"] == "Operations/Filter":
                 lastType = "filter"
                 if lastType == "filter":
@@ -74,8 +75,10 @@ def generateQuery(nodes, links):
                 pathQueries.append(query)
 
 
-    q = str( db.query(*pathQueries))
-    response = db.query(*pathQueries).all()    
+    q = str(db.query(*pathQueries))
+    response = db.query(*pathQueries).all()
+    print(paths)
+    print(len(pathQueries))    
     result, keys = convertToJson(response[0].keys(), response)
     print(keys)
     return result, keys, str(q)
