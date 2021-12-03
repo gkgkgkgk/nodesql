@@ -11,6 +11,7 @@ const init = (g, showModal, r) => {
 
     createEntityBlocks();
     createFilterBlock();
+    createProjectionBlock();
     createDisplayBlock(showModal);
 };
 
@@ -67,6 +68,50 @@ const createEntityBlocks = () => {
     }
 };
 
+const createProjectionBlock = () => {
+    const adjustToggle = (value, widget, node) => {
+
+        for (let i = 0; i < node.widgets.length; i++) {
+            node.properties.Fields[node.widgets[i].name] = node.widgets[i].value;
+            console.log()
+        }
+
+
+        console.log(node.properties.Fields);
+    }
+    function ProjectionNode() {
+        this.addInput("Entity", "Entity");
+        this.addOutput("Entity", "Entity");
+        this.properties = { Fields: [] };
+    }
+
+    ProjectionNode.prototype.onExecute = function () {
+    };
+
+    ProjectionNode.prototype.onConnectionsChange = function (type, slotIndex, isConnected, link, ioSlot) {
+        if (isConnected) {
+            let node = graph.getNodeById(link.origin_id);
+            console.log(node.properties.Fields);
+            if (node.properties.Fields) {
+                node.properties.Fields.forEach(field => {
+                    let widget = this.addWidget("toggle", field.name, false, adjustToggle);
+                    this.properties.Fields[widget.name] = widget.value;
+                });
+            }
+        }
+        else {
+            if (this.widgets) {
+                let l = this.widgets.length;
+                for (let i = 0; i < l; i++) {
+                    this.widgets.pop();
+                }
+            }
+        }
+    };
+
+    ProjectionNode.title = "Projection";
+    LiteGraph.registerNodeType("Operations/Projection", ProjectionNode);
+}
 const createFilterBlock = () => {
     const setCustomValue = (value, widget, node) => {
         node.properties.CustomValue = value;

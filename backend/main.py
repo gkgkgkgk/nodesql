@@ -3,6 +3,8 @@ from sqlalchemy import create_engine, func, Integer, String, Column, DateTime, e
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import Session
 from sqlalchemy.sql.functions import rank
+from sqlalchemy import or_
+from sqlalchemy import and_
 
 #import flask
 from flask import Flask
@@ -11,7 +13,7 @@ from flask import jsonify
 from flask_cors import CORS
 
 base = declarative_base()
-engine = create_engine("mysql+pymysql://newuser:password@localhost/class")
+engine = create_engine("mysql+pymysql://gk:$Password1@localhost/class")
 db = Session(engine)
 base.metadata.create_all(engine)
 conn = engine.connect()
@@ -57,30 +59,33 @@ def generateQuery(nodes, links):
                     paths[i][j] = node
 
     pathQueries = []
+    comps = []
+    operator = False
+    
     for i in range(len(paths)):
-        query = None;
-        lastType = "";
-        filters = [];
+        query = None
+        lastType = ""
+        filters = []
         for node in paths[i]:
-            print(node)
             if node["type"] == "Operations/Filter":
                 lastType = "filter"
                 if lastType == "filter":
                     filters.append(node)
             else:
                 if lastType == "filter":
-                    query = (getFilterQuery(filters, query))
+                    comp = (getFilterComps(filters, query))
+                    comps.append(comp)
                     filters = []
             if node["type"] == "Display/Display":
                 pathQueries.append(query)
 
-
+    pathQueries.append(getFilter(comps))
+    q = db.query(*pathQueries).all();
+    
     q = str(db.query(*pathQueries))
     response = db.query(*pathQueries).all()
-    print(paths)
-    print(len(pathQueries))    
+      
     result, keys = convertToJson(response[0].keys(), response)
-    print(keys)
     return result, keys, str(q)
 
 def convertToJson(keys, response):
@@ -98,7 +103,13 @@ def convertToJson(keys, response):
     
     return j, k
 
-def getFilterQuery(filters, subquery):
+def getFilter(comps):
+    a = []
+    for comp in comps:
+        a.append(and_(*(comp)))
+    return db.query(sailors).filter((or_(*(a)))).subquery()
+
+def getFilterComps(filters, subquery):
     if subquery is None:
         subquery = sailors
 
@@ -114,19 +125,19 @@ def getFilterQuery(filters, subquery):
             comp2 = getattr(sailors, comp2)
 
         if operation == ">":
-            comps.append(comp1 > comp2)
+            comps.append((comp1 > comp2))
         if operation == "<":
-            comps.append(comp1 < comp2)
+            comps.append((comp1 < comp2))
         if operation == "=":
-            comps.append(comp1 == comp2)
+            comps.append((comp1 == comp2))
         if operation == ">=":
-            comps.append(comp1 >= comp2)
+            comps.append((comp1 >= comp2))
         if operation == "<=":
-            comps.append(comp1 <= comp2)
+            comps.append((comp1 <= comp2))
         if operation == "!=":
-            comps.append(comp1 != comp2)
+            comps.append((comp1 != comp2))
 
-    return db.query(subquery).filter(*comps).subquery()
+    return comps
 
 @app.route('/', methods=['POST'])
 def main():
