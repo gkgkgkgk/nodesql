@@ -35,7 +35,6 @@ function App() {
 
     const handleKeyDown = (e) => {
       if (e.key === 's') {
-        convertToJson("[(58, 'rusty', 10, 35), (60, 'jit', 10, 35), (62, 'shaun', 10, 35), (71, 'zorba', 10, 35)]");
         getSQL();
       }
     };

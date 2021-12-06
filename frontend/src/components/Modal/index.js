@@ -10,7 +10,6 @@ const Modal = ({ showModal: show, setShowModal: setShow, query, result, keys }) 
     return (
         <div className="modal" style={{ "display": (show ? "block" : "none") }}>
             <button onClick={handleClose}>&times;</button>
-            <p>{query}</p>
             <p><DataTable keys={keys} result={result}></DataTable></p>
         </div>
     );

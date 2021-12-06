@@ -1,7 +1,7 @@
 from os import path
 from sqlalchemy import create_engine, func, Integer, String, Column, DateTime, exists, desc, select
 from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, load_only
 from sqlalchemy.sql.functions import rank
 from sqlalchemy import or_
 from sqlalchemy import and_
@@ -14,9 +14,9 @@ from flask_cors import CORS
 
 base = declarative_base()
 engine = create_engine("mysql+pymysql://gk:$Password1@localhost/class")
-db = Session(engine)
 base.metadata.create_all(engine)
 conn = engine.connect()
+db = Session(engine)
 
 class sailors(base):
     __tablename__ = "sailors"
@@ -31,7 +31,7 @@ cors = CORS(app)
 
 edges = []
 
-# depth first search to find al paths from a to b given array of edges and vertices
+# depth first search to find all paths from a to b given array of edges and vertices
 def dfs(a, b, edges, path=[]):
     path = path + [a]
     if a == b:
@@ -46,6 +46,7 @@ def dfs(a, b, edges, path=[]):
     return paths        
 
 def generateQuery(nodes, links):
+
     for link in links:
         edges.append([link[1], link[3]])
 
@@ -61,7 +62,8 @@ def generateQuery(nodes, links):
     pathQueries = []
     comps = []
     operator = False
-    
+    values = []
+
     for i in range(len(paths)):
         query = None
         lastType = ""
@@ -76,17 +78,28 @@ def generateQuery(nodes, links):
                     comp = (getFilterComps(filters, query))
                     comps.append(comp)
                     filters = []
+                if node["type"] == "Operations/Projection":
+                    values = getProjection(node)
             if node["type"] == "Display/Display":
                 pathQueries.append(query)
 
-    pathQueries.append(getFilter(comps))
+    pathQueries.append(getFilter(values, comps))
     q = db.query(*pathQueries).all();
     
-    q = str(db.query(*pathQueries))
     response = db.query(*pathQueries).all()
       
     result, keys = convertToJson(response[0].keys(), response)
     return result, keys, str(q)
+
+def getProjection(node):
+    v = []
+    print(node["properties"]["Fields"])
+    for field in node["properties"]["Fields"]:
+        if field['value'] == True:
+            print(field['name'])
+            v.append(field['name'])
+
+    return v
 
 def convertToJson(keys, response):
     j = []
@@ -103,11 +116,15 @@ def convertToJson(keys, response):
     
     return j, k
 
-def getFilter(comps):
+def getFilter(fields, comps):
     a = []
+    b = []
+    for field in fields:
+        b.append(getattr(sailors, field))
+
     for comp in comps:
         a.append(and_(*(comp)))
-    return db.query(sailors).filter((or_(*(a)))).subquery()
+    return db.query(*b).filter((or_(*(a)))).subquery()
 
 def getFilterComps(filters, subquery):
     if subquery is None:

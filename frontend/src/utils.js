@@ -70,12 +70,9 @@ const createEntityBlocks = () => {
 
 const createProjectionBlock = () => {
     const adjustToggle = (value, widget, node) => {
-
         for (let i = 0; i < node.widgets.length; i++) {
-            node.properties.Fields[node.widgets[i].name] = node.widgets[i].value;
-            console.log()
+            node.properties.Fields[i].value = node.widgets[i].value;
         }
-
 
         console.log(node.properties.Fields);
     }
@@ -90,12 +87,26 @@ const createProjectionBlock = () => {
 
     ProjectionNode.prototype.onConnectionsChange = function (type, slotIndex, isConnected, link, ioSlot) {
         if (isConnected) {
-            let node = graph.getNodeById(link.origin_id);
-            console.log(node.properties.Fields);
-            if (node.properties.Fields) {
-                node.properties.Fields.forEach(field => {
-                    let widget = this.addWidget("toggle", field.name, false, adjustToggle);
-                    this.properties.Fields[widget.name] = widget.value;
+            console.log(this.widgets);
+            if (!this.widgets || this.widgets.length == 0) {
+
+                let node = graph.getNodeById(link.origin_id);
+                let f = [];
+                if (node.type.startsWith("Operations")) {
+                    if (node.properties.Fields) {
+                        f = node.properties.Fields.map(field => field.name);
+                    }
+                }
+                else if (node.type.startsWith("Entity")) {
+                    console.log(node.outputs);
+                    f = node.outputs.map(output => output.name);
+                    f.shift();
+                }
+                console.log(f);
+
+                f.forEach(field => {
+                    this.addWidget("toggle", field, true, adjustToggle);
+                    this.properties.Fields.push({ "name": field, "value": true });
                 });
             }
         }
@@ -106,6 +117,7 @@ const createProjectionBlock = () => {
                     this.widgets.pop();
                 }
             }
+            this.properties.Fields = [];
         }
     };
 
