@@ -12,6 +12,7 @@ const init = (g, showModal, r) => {
     createEntityBlocks();
     createFilterBlock();
     createProjectionBlock();
+    creatCountBlock();
     createDisplayBlock(showModal);
 };
 
@@ -67,6 +68,19 @@ const createEntityBlocks = () => {
         LiteGraph.registerNodeType("Entity/" + name, EntityNode);
     }
 };
+
+const creatCountBlock = () => {
+    function CountNode() {
+        this.addInput("Count", "Entity");
+        this.addOutput("Count", "number");
+    }
+
+    CountNode.prototype.onExecute = function () {
+    };
+
+    CountNode.title = "Count";
+    LiteGraph.registerNodeType("Operations/Count", CountNode);
+}
 
 const createProjectionBlock = () => {
     const adjustToggle = (value, widget, node) => {
