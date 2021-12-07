@@ -29,3 +29,12 @@
     height: 55px;
     width: 55px;
 }
+
+td {
+    text-align: center;
+    vertical-align: middle;
+}
+table {
+    margin-left: auto;
+  margin-right: auto;
+}

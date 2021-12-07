@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 
 const DataTable = (props) => {
     return (
-        <table>
+        <table style={{ textAlign: "center" }}>
             <tr>
                 {props.keys.map((key, index) => {
                     return <th key={index}>{key}</th>

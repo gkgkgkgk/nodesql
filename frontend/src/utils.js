@@ -245,32 +245,34 @@ const createFilterBlock = () => {
     };
 
     FilterNode.prototype.onConnectionsChange = function (type, slotIndex, isConnected, link, ioSlot) {
-        if (slotIndex === 0) {
-            let node = graph.getNodeById(link.origin_id);
-            let fieldValues = [];
-            let outputs = [];
+        console.log(type, slotIndex, isConnected, link, ioSlot);
+        if (isConnected) {
+            if (slotIndex === 0) {
+                let node = graph.getNodeById(link.origin_id);
+                let fieldValues = [];
+                let outputs = [];
 
-            if (node.type == "Operations/Filter") {
-                outputs = node.properties.Fields;
-                for (let i = 0; i < outputs.length; i++) {
-                    this.properties.Fields[i] = outputs[i];
-                    fieldValues.push(outputs[i].name);
+                if (node.type == "Operations/Filter") {
+                    outputs = node.properties.Fields;
+                    for (let i = 0; i < outputs.length; i++) {
+                        this.properties.Fields[i] = outputs[i];
+                        fieldValues.push(outputs[i].name);
+                    }
                 }
-            }
-            else {
-                outputs = node.outputs;
-                for (let i = 1; i < outputs.length; i++) {
-                    this.properties.Fields[i - 1] = outputs[i];
-                    fieldValues.push(outputs[i].name);
+                else {
+                    outputs = node.outputs;
+                    for (let i = 1; i < outputs.length; i++) {
+                        this.properties.Fields[i - 1] = outputs[i];
+                        fieldValues.push(outputs[i].name);
+                    }
                 }
-            }
 
-            this.widgets[0].options.values = fieldValues;
-            this.widgets[0].value = fieldValues[0];
-        }
-        else if (slotIndex == 1) {
-            let node = graph.getNodeById(link.origin_id);
-            this.properties.CustomValue = node.properties.Output;
+                this.widgets[0].options.values = fieldValues;
+            }
+            else if (slotIndex == 1) {
+                let node = graph.getNodeById(link.origin_id);
+                this.properties.CustomValue = node.properties.Output;
+            }
         }
     };
 

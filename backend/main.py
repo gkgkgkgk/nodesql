@@ -46,7 +46,7 @@ def dfs(a, b, edges, path=[]):
     return paths        
 
 def generateQuery(nodes, links):
-
+    print(links)
     for link in links:
         edges.append([link[1], link[3]])
 
