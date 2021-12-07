@@ -61,7 +61,7 @@ def generateQuery(nodes, links):
 
     pathQueries = []
     comps = []
-    operator = False
+    count = False
     values = []
 
     for i in range(len(paths)):
@@ -80,16 +80,30 @@ def generateQuery(nodes, links):
                     filters = []
                 if node["type"] == "Operations/Projection":
                     values = getProjection(node)
+                if node["type"] == "Operations/Count":
+                    count = True
             if node["type"] == "Display/Display":
                 pathQueries.append(query)
 
+    # check if comps is empty
     pathQueries.append(getFilter(values, comps))
-    q = db.query(*pathQueries).all();
+
+    q = db.query(*pathQueries).all()
+
+    print(q)
     
     response = db.query(*pathQueries).all()
       
     result, keys = convertToJson(response[0].keys(), response)
-    return result, keys, str(q)
+    t = "json"
+
+    if count:
+        result = [{"count": len(response)}]
+        keys = ["count"]
+        t = "number"
+
+
+    return result, keys, str(q), t
 
 def getProjection(node):
     v = []
@@ -124,7 +138,11 @@ def getFilter(fields, comps):
 
     for comp in comps:
         a.append(and_(*(comp)))
-    return db.query(*b).filter((or_(*(a)))).subquery()
+    
+    if len(b) > 0:
+        return db.query(*b).filter((or_(*(a)))).subquery()
+    else:
+        return db.query(sailors).filter((or_(*(a)))).subquery()
 
 def getFilterComps(filters, subquery):
     if subquery is None:
@@ -158,8 +176,8 @@ def getFilterComps(filters, subquery):
 
 @app.route('/', methods=['POST'])
 def main():
-    result, keys, query = generateQuery(request.json['nodes'], request.json['links'])
-    return jsonify({"result": result, "keys": keys, "query": query})
+    result, keys, query, t = generateQuery(request.json['nodes'], request.json['links'])
+    return jsonify({"result": result, "keys": keys, "query": query, "type": t})
 
 
 app.run(debug=True)
