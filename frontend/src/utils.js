@@ -13,6 +13,7 @@ const init = (g, showModal, r) => {
     createFilterBlock();
     createProjectionBlock();
     creatCountBlock();
+    createForEachBlock();
     createDisplayBlock(showModal);
 };
 
@@ -22,9 +23,6 @@ const getNodeFromLink = id => {
     let origin_id;
     let target_id;
 
-    console.log(links);
-    console.log(serialized.nodes);
-    console.log(id);
     for (let l of links) {
         if (l[5] === id) {
             origin_id = l[1];
@@ -53,9 +51,15 @@ const createEntityBlocks = () => {
         let name = table.name_;
         function EntityNode() {
             this.addOutput(table.name_, "Entity");
+            
+            let fields = [];
+            
             for (let field of table.columns) {
                 this.addOutput(field.name, field.type);
+                fields.push({ name: field.name, type: field.type });
             }
+
+            this.properties = { Fields: fields };            
         }
 
         EntityNode.prototype.onExecute = function () {
@@ -80,6 +84,47 @@ const creatCountBlock = () => {
 
     CountNode.title = "Count";
     LiteGraph.registerNodeType("Operations/Count", CountNode);
+}
+
+const createForEachBlock = () => {
+
+    const adjustAgg = (value, widget, node) => {
+        node.properties.agg = value;
+    }
+
+    const adjustField1 = (value, widget, node) => {
+        node.properties.Field1 = value;
+    }
+
+    const adjustField2 = (value, widget, node) => {
+        node.properties.Field2 = value;
+    }
+
+    function ForEachNode() {
+        this.addInput("Entity", "Entity");
+        this.addOutput("Output", "number");
+        this.properties = { Fields: [], Field1: "", Field2: "", agg: "" };
+        this.addWidget("combo", "Function", "", adjustAgg, {values: ["Count", "Sum", "Avg", "Min", "Max"]});
+        this.addWidget("combo", "Field1", "", adjustField1, {values: []});
+        this.addWidget("combo", "", "Per", {values: ["Per"]});
+        this.addWidget("combo", "Field2", "", adjustField2, {values: []});
+    }
+
+    ForEachNode.prototype.onExecute = function () {
+    };
+
+    ForEachNode.prototype.onConnectionsChange = function (type, slotIndex, isConnected, link, ioSlot) {
+        if (isConnected) {
+            let node = this.graph.getNodeById(link.origin_id);
+            let fields = node.properties.Fields;
+            this.properties.Fields = fields;
+            this.widgets[1].options.values = fields.map(f => f.name);
+            this.widgets[3].options.values = fields.map(f => f.name);
+        }
+    }
+
+    ForEachNode.title = "ForEach";
+    LiteGraph.registerNodeType("Operations/ForEach", ForEachNode);
 }
 
 const createProjectionBlock = () => {
