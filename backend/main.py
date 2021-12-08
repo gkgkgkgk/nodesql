@@ -163,7 +163,7 @@ def getFilterComps(filters, subquery):
             comps.append((comp1 > comp2))
         if operation == "<":
             comps.append((comp1 < comp2))
-        if operation == "=":
+        if operation == "=" or operation == "is the same as":
             comps.append((comp1 == comp2))
         if operation == ">=":
             comps.append((comp1 >= comp2))

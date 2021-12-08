@@ -17,35 +17,6 @@ const init = (g, showModal, r) => {
     createDisplayBlock(showModal);
 };
 
-const getNodeFromLink = id => {
-    let serialized = graph.serialize();
-    let links = serialized.links;
-    let origin_id;
-    let target_id;
-
-    for (let l of links) {
-        if (l[5] === id) {
-            origin_id = l[1];
-            target_id = l[3];
-        }
-    }
-
-    return [graph.getNodeById(origin_id), graph.getNodeById(target_id)];
-};
-
-const getLink = id => {
-    let serialized = graph.serialize();
-    let links = serialized.links;
-
-    for (let l of links) {
-        console.log(l);
-        console.log(id);
-        if (l[0] === id) {
-            return l;
-        }
-    }
-};
-
 const createEntityBlocks = () => {
     for (let table of tables) {
         let name = table.name_;
@@ -103,15 +74,12 @@ const createForEachBlock = () => {
     function ForEachNode() {
         this.addInput("Entity", "Entity");
         this.addOutput("Output", "number");
-        this.properties = { Fields: [], Field1: "", Field2: "", agg: "" };
         this.addWidget("combo", "Function", "", adjustAgg, {values: ["Count", "Sum", "Avg", "Min", "Max"]});
         this.addWidget("combo", "Field1", "", adjustField1, {values: []});
         this.addWidget("combo", "", "Per", {values: ["Per"]});
         this.addWidget("combo", "Field2", "", adjustField2, {values: []});
+        this.properties = { Fields: [], Field1: "", Field2: "", agg: "" };
     }
-
-    ForEachNode.prototype.onExecute = function () {
-    };
 
     ForEachNode.prototype.onConnectionsChange = function (type, slotIndex, isConnected, link, ioSlot) {
         if (isConnected) {
@@ -140,9 +108,6 @@ const createProjectionBlock = () => {
         this.addOutput("Entity", "Entity");
         this.properties = { Fields: [] };
     }
-
-    ProjectionNode.prototype.onExecute = function () {
-    };
 
     ProjectionNode.prototype.onConnectionsChange = function (type, slotIndex, isConnected, link, ioSlot) {
         if (isConnected) {
@@ -286,30 +251,17 @@ const createFilterBlock = () => {
         this.properties = { Field: "", Field2: "", CustomValue: "", Operation: "", Fields: [] };
     }
 
-    FilterNode.prototype.onExecute = function () {
-    };
-
     FilterNode.prototype.onConnectionsChange = function (type, slotIndex, isConnected, link, ioSlot) {
-        console.log(type, slotIndex, isConnected, link, ioSlot);
         if (isConnected) {
             if (slotIndex === 0) {
                 let node = graph.getNodeById(link.origin_id);
                 let fieldValues = [];
                 let outputs = [];
-
-                if (node.type == "Operations/Filter") {
-                    outputs = node.properties.Fields;
-                    for (let i = 0; i < outputs.length; i++) {
-                        this.properties.Fields[i] = outputs[i];
-                        fieldValues.push(outputs[i].name);
-                    }
-                }
-                else {
-                    outputs = node.outputs;
-                    for (let i = 1; i < outputs.length; i++) {
-                        this.properties.Fields[i - 1] = outputs[i];
-                        fieldValues.push(outputs[i].name);
-                    }
+                outputs = node.properties.Fields;                    
+                
+                for (let i = 0; i < outputs.length; i++) {
+                    this.properties.Fields[i] = outputs[i];
+                    fieldValues.push(outputs[i].name);
                 }
 
                 this.widgets[0].options.values = fieldValues;
@@ -334,9 +286,6 @@ const createDisplayBlock = showModal => {
         this.addWidget("button", "Run Query", "", show);
     }
 
-    DisplayNode.prototype.onExecute = function () {
-    };
-
     DisplayNode.prototype.onConnectionsChange = function (type, slotIndex, isConnected, link, ioSlot) {
         if (isConnected) {
             this.addInput("entity");
@@ -353,7 +302,6 @@ const createDisplayBlock = showModal => {
 };
 
 const getSQL = () => {
-    // preprocess data here
     //[link_id, origin_id, origin_slot, target_id, target_slot, link_type];
     console.log(graph.serialize());
     let serialization = graph.serialize();
@@ -361,7 +309,6 @@ const getSQL = () => {
     let nodes = serialization.nodes;
     let links = serialization.links;
 
-    // sort nodes by order
     nodes.sort((a, b) => {
         return a.order - b.order;
     });
