@@ -62,6 +62,7 @@ def generateQuery(nodes, links):
     pathQueries = []
     comps = []
     count = False
+    groupBy = False
     values = []
 
     for i in range(len(paths)):
@@ -82,6 +83,8 @@ def generateQuery(nodes, links):
                     values = getProjection(node)
                 if node["type"] == "Operations/Count":
                     count = True
+                if node["type"] == "Operations/ForEach":
+                    groupBy = True
             if node["type"] == "Display/Display":
                 pathQueries.append(query)
 
@@ -93,7 +96,6 @@ def generateQuery(nodes, links):
     print(q)
     
     response = db.query(*pathQueries).all()
-      
     result, keys = convertToJson(response[0].keys(), response)
     t = "json"
 
@@ -117,17 +119,12 @@ def getProjection(node):
 
 def convertToJson(keys, response):
     j = []
-    k = []
-    
-    for key in keys:
-        k.append(key)
+    k = [key for key in keys]
+    print(keys)
 
     for r in response:
-        jr = {};
-        for key in keys:
-            jr[key] = r[key]
+        jr = {key: r[key] for key in keys}
         j.append(jr)
-    
     return j, k
 
 def getFilter(fields, comps):
@@ -171,6 +168,10 @@ def getFilterComps(filters, subquery):
             comps.append((comp1 <= comp2))
         if operation == "!=":
             comps.append((comp1 != comp2))
+        if operation == "starts with":
+            comps.append((comp1.like(comp2 + "%")))
+        if operation == "ends with":
+            comps.append((comp1.like("%" + comp2)))
 
     return comps
 
