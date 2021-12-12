@@ -62,7 +62,7 @@ def generateQuery(nodes, links):
     pathQueries = []
     comps = []
     count = False
-    groupBy = False
+    groupBy = None
     values = []
 
     for i in range(len(paths)):
@@ -84,14 +84,22 @@ def generateQuery(nodes, links):
                 if node["type"] == "Operations/Count":
                     count = True
                 if node["type"] == "Operations/ForEach":
-                    groupBy = True
+                    groupBy = node
             if node["type"] == "Display/Display":
                 pathQueries.append(query)
 
     # check if comps is empty
     pathQueries.append(getFilter(values, comps))
-
     q = db.query(*pathQueries).all()
+
+    if groupBy != None:
+        agg = node["properties"]["agg"]
+        field1 = getattr(sailors, node["properties"]["Field1"])
+        field2 = getattr(sailors, node["properties"]["Field2"])
+
+        if agg == "sum":
+            result = db.query().group_by(field1).all()
+
 
     print(q)
     
