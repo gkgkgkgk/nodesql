@@ -17,3 +17,8 @@ Below are some screenshots of nodesql in action:
 
 ![Query](https://raw.githubusercontent.com/gkgkgkgk/nodesql/main/images/query.png)
 Above is a query that gets the names of all the sailors in the database who have an age above 50.
+
+This project is using litegraph.js and SQLAlchemy.
+
+https://github.com/jagenjo/litegraph.js?files=1
+https://github.com/sqlalchemy/sqlalchemy
