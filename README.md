@@ -11,9 +11,9 @@ and verbose, and NodeSQL aims to fix that by providing an intuitive graphical
 environment for building SQL queries.
 
 Below are some screenshots of nodesql in action:
-![Complex Filter](\images\complexfilter.png)
-![Projection](\images\projections.png)
+![Complex Filter](https://raw.githubusercontent.com/gkgkgkgk/nodesql/main/images/complexfilter.png)
+![Projection](https://raw.githubusercontent.com/gkgkgkgk/nodesql/main/images/projections.png)
 
 
-![Query](\images\query.png)
+![Query](https://raw.githubusercontent.com/gkgkgkgk/nodesql/main/images/query.png)
 Above is a query that gets the names of all the sailors in the database who have an age above 50.
