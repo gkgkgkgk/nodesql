@@ -5,6 +5,7 @@ from sqlalchemy.orm import Session, load_only
 from sqlalchemy.sql.functions import rank
 from sqlalchemy import or_
 from sqlalchemy import and_
+from sqlalchemy.sql import label
 
 #import flask
 from flask import Flask
@@ -47,6 +48,7 @@ def dfs(a, b, edges, path=[]):
 
 def generateQuery(nodes, links):
     print(links)
+    edges = []
     for link in links:
         edges.append([link[1], link[3]])
 
@@ -70,6 +72,7 @@ def generateQuery(nodes, links):
         lastType = ""
         filters = []
         for node in paths[i]:
+            print(node)
             if node["type"] == "Operations/Filter":
                 lastType = "filter"
                 if lastType == "filter":
@@ -90,20 +93,23 @@ def generateQuery(nodes, links):
 
     # check if comps is empty
     pathQueries.append(getFilter(values, comps))
-    q = db.query(*pathQueries).all()
+    response = db.query(*pathQueries).all()
 
     if groupBy != None:
-        agg = node["properties"]["agg"]
-        field1 = getattr(sailors, node["properties"]["Field1"])
-        field2 = getattr(sailors, node["properties"]["Field2"])
+        print(groupBy)
+        agg = groupBy["properties"]["agg"].lower()
+        field1 = getattr(sailors, groupBy["properties"]["Field1"])
+        field2 = getattr(sailors, groupBy["properties"]["Field2"])
 
         if agg == "sum":
-            result = db.query().group_by(field1).all()
-
-
-    print(q)
+            response = db.query(field2, label('Sum', func.sum(field1))).group_by(field2).all()
+        if agg == "avg":
+            response = db.query(field2, label('Average', func.avg(field1))).group_by(field2).all()
+        if agg == "min":
+            response = db.query(field2, label('Min', func.min(field1))).group_by(field2).all()
+        if agg == "max":
+            response = db.query(field2, label('Max', func.max(field1))).group_by(field2).all()
     
-    response = db.query(*pathQueries).all()
     result, keys = convertToJson(response[0].keys(), response)
     t = "json"
 
@@ -113,7 +119,7 @@ def generateQuery(nodes, links):
         t = "number"
 
 
-    return result, keys, str(q), t
+    return result, keys, "Query", t
 
 def getProjection(node):
     v = []
