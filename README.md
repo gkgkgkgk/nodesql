@@ -20,5 +20,5 @@ Above is a query that gets the names of all the sailors in the database who have
 
 This project is using litegraph.js and SQLAlchemy.
 
-https://github.com/jagenjo/litegraph.js?files=1
-https://github.com/sqlalchemy/sqlalchemy
+* https://github.com/jagenjo/litegraph.js
+* https://github.com/sqlalchemy/sqlalchemy
