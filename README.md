@@ -10,6 +10,8 @@ benefit from a visual representation of a query. SQL queries can get confusing
 and verbose, and NodeSQL aims to fix that by providing an intuitive graphical
 environment for building SQL queries.
 
+Read more about it here: https://gkgkgkgk.github.io/database/2021/12/27/nodesql.html
+
 Below are some screenshots of nodesql in action:
 ![Complex Filter](https://raw.githubusercontent.com/gkgkgkgk/nodesql/main/images/complexfilter.png)
 ![Projection](https://raw.githubusercontent.com/gkgkgkgk/nodesql/main/images/projections.png)
